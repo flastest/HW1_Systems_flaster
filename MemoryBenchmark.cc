@@ -5,6 +5,9 @@
 #include <cmath>
 
 
+
+using data_t = uint32_t;
+
 /*
  * measures the latency of reading a byte from DRAM 
  *
@@ -14,14 +17,14 @@
 
 
 // creates a random array of bytes given a size
-std::vector<char> random_array(int size)
+std::vector<data_t> random_array(int size)
 {
 	std::mt19937 mt_rand(size);
-	std::vector<char> byte_vector(size);
+	std::vector<data_t> byte_vector(size);
 
 	for (int i = 0; i < size; i++)
 	{
-		byte_vector[i] = mt_rand()%255;
+		byte_vector[i] = mt_rand();
 	}
 
 	return byte_vector;
@@ -34,7 +37,7 @@ float time_to_get_from_DRAM(int buffer_size)
 	std::mt19937 mt_rand(buffer_size);
 
 
-	std::vector<char> bytes = random_array(buffer_size);
+	std::vector<data_t> bytes = random_array(buffer_size);
 
 	float total_time = 0.0f;
 
@@ -75,7 +78,7 @@ float time_to_get_from_DRAM(int buffer_size)
 float time_to_get_from_cache(int buffer_size)
 {
 	//adding a one to the seed so that I don't use the same seed twice.
-	std::vector<char> bytes = random_array(buffer_size+1);
+	std::vector<data_t> bytes = random_array(buffer_size+1);
 	//this should definitely prefetch everything.
 	__builtin_prefetch(&bytes[0],1,1);
 
@@ -130,17 +133,17 @@ int main()
 
 	}
 
-	int i = 0;
+	std::mt19937 mt_rand(std::time(0));
 
 	//time it takes for ++ to happen:
 	auto startTime = std::chrono::high_resolution_clock::now();
 		
-	i++;
+	mt_rand();
 		
 	auto endTime = std::chrono::high_resolution_clock::now();
 	float t = std::chrono::duration_cast<std::chrono::nanoseconds>( endTime - startTime ).count();
  
-	std::cout<<"this is how long it takes for ++ to happen:"<<t<<std::endl;
+	std::cout<<"this is how long it takes to gen a rando num to happen:"<<t<<std::endl;
 
 
 
