@@ -3,7 +3,8 @@
 #include <random>
 #include <chrono>
 #include <cmath>
-
+#include <algorithm>
+#include <cstdlib>
 
 
 using data_t = uint32_t;
@@ -39,32 +40,30 @@ float time_to_get_from_DRAM(int buffer_size)
 
 	std::vector<data_t> bytes = random_array(buffer_size);
 
-	float total_time = 0.0f;
 
 
+	std::vector<int> indexes;
 
+	//make random permutation of indexes
+	for (int i = 0; i < buffer_size; i ++)
+	{
+		indexes.push_back(i);
+	}
+	random_shuffle(indexes.begin(),indexes.end());
+
+	auto startTime = std::chrono::high_resolution_clock::now();
 	for (int i = 0; i < buffer_size; i++)
 	{
 
-
-		int random_index = mt_rand()%buffer_size;
-		auto startTime = std::chrono::high_resolution_clock::now();
-		
-		bytes[random_index];
-
-		auto finTime = std::chrono::high_resolution_clock::now();
-		float t = std::chrono::duration_cast<std::chrono::nanoseconds>( finTime - startTime ).count();
-		total_time += t;
-
-
-
+		bytes[indexes[i]];
 
 	}
 	
+	auto finTime = std::chrono::high_resolution_clock::now();
+	float t = std::chrono::duration_cast<std::chrono::nanoseconds>( finTime - startTime ).count();
 
 
-
-	return total_time/buffer_size;
+	return t/buffer_size;
 	
 }
 
@@ -79,31 +78,58 @@ float time_to_get_from_cache(int buffer_size)
 {
 	//adding a one to the seed so that I don't use the same seed twice.
 	std::vector<data_t> bytes = random_array(buffer_size+1);
-	//this should definitely prefetch everything.
-	__builtin_prefetch(&bytes[0],1,1);
+	
 
-	float total_time = 0.0f;
-
-	for (int i = 0; i < buffer_size; i++)
+	
+	//take minimum!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! not average!!!!
+	auto startTime = std::chrono::high_resolution_clock::now();
+	for (int i = 0; i < buffer_size; ++i)
 	{
-		auto startTime = std::chrono::high_resolution_clock::now();
+		
 
 		bytes[i];
 
-		auto endTime = std::chrono::high_resolution_clock::now();
-		float t = std::chrono::duration_cast<std::chrono::nanoseconds>( endTime - startTime ).count();
- 
-		//prefetch the next number
-		__builtin_prefetch(&bytes[i+1],1,1);
+		
 
-
-		//add time to running total
-		total_time += t;
+		
 	}
-	return total_time/buffer_size;
+	auto endTime = std::chrono::high_resolution_clock::now();
+	float t = std::chrono::duration_cast<std::chrono::nanoseconds>( endTime - startTime ).count();
+
+
+	return t/buffer_size;
 
 
 }
+
+
+
+
+
+
+// takes an input of some number of trials and a buffer size and runs
+// that number of trials with the given buffer size and returns the smallest
+// time it took to do the thing. This returns the minimum
+float get_min_from_n_trials(int num_trials, int buffer_size)
+{
+	
+	
+
+	float min = time_to_get_from_cache(buffer_size);
+
+
+	for (int i = 0; i < num_trials; i++)
+	{
+		float new_time = time_to_get_from_cache(buffer_size);
+		min = new_time < min ? new_time : min;
+	}
+
+	return min;
+
+
+}
+
+
 
 
 
