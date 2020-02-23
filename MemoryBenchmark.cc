@@ -25,7 +25,7 @@ std::vector<data_t> random_array(int size)
 
 	for (int i = 0; i < size; i++)
 	{
-		byte_vector[i] = mt_rand();
+		byte_vector[i] = mt_rand()%255;
 	}
 
 	return byte_vector;
@@ -35,72 +35,52 @@ std::vector<data_t> random_array(int size)
 float time_to_get_from_DRAM(int buffer_size)
 {
 
-	std::mt19937 mt_rand(buffer_size);
-
 
 	std::vector<data_t> bytes = random_array(buffer_size);
 
 
+	//determine how many iters to do
+	int iters = buffer_size < 100000 ? buffer_size * 1024 : buffer_size;
 
 	std::vector<int> indexes;
 
 	//make random permutation of indexes
-	for (int i = 0; i < buffer_size; i ++)
+	for (int i = 0; i < iters; i ++)
 	{
-		indexes.push_back(i);
+		indexes.push_back(i%buffer_size);
 	}
 	random_shuffle(indexes.begin(),indexes.end());
 
-	auto startTime = std::chrono::high_resolution_clock::now();
-	for (int i = 0; i < buffer_size; i++)
-	{
 
-		bytes[indexes[i]];
+	//time iters amount of reads from bytes vector 
+	auto startTime = std::chrono::high_resolution_clock::now();
+	for (int i = 0; i < iters; i++)
+	{
+		//when I just had bytes[indexes[i]]; as an attempt to "read"
+		// i got reallllly small times. I think -O3 didn't do the read
+		// since I wasn't doing anything with the value. Doing ++
+		// forces the compiler to read and write, but idk how long that 
+		// takes
+		
+		if (bytes[indexes[i]] == 2556) std::cout<<"hah time is slow, lmao";
+		//bytes[indexes[i]]++;
+
+		//or I could do something that only reads. maybe a parallel lambda?
+		//if statement?
 
 	}
 	
 	auto finTime = std::chrono::high_resolution_clock::now();
 	float t = std::chrono::duration_cast<std::chrono::nanoseconds>( finTime - startTime ).count();
+	
 
+//	std::cout<<"t is "<<t<<std::endl;
 
-	return t/buffer_size;
+	return t/(iters) ;
 	
 }
 
 
-
-// as a control, i wrote something that just fetches from the cache.
-//it sequentially reads things from an array. Each item in the array
-//is prefetched just in case. This should guarantee that the memory 
-//reads are read from L1. 
-
-float time_to_get_from_cache(int buffer_size)
-{
-	//adding a one to the seed so that I don't use the same seed twice.
-	std::vector<data_t> bytes = random_array(buffer_size+1);
-	
-
-	
-	//take minimum!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! not average!!!!
-	auto startTime = std::chrono::high_resolution_clock::now();
-	for (int i = 0; i < buffer_size; ++i)
-	{
-		
-
-		bytes[i];
-
-		
-
-		
-	}
-	auto endTime = std::chrono::high_resolution_clock::now();
-	float t = std::chrono::duration_cast<std::chrono::nanoseconds>( endTime - startTime ).count();
-
-
-	return t/buffer_size;
-
-
-}
 
 
 
@@ -113,14 +93,12 @@ float time_to_get_from_cache(int buffer_size)
 float get_min_from_n_trials(int num_trials, int buffer_size)
 {
 	
-	
-
-	float min = time_to_get_from_cache(buffer_size);
+	float min = time_to_get_from_DRAM(buffer_size);
 
 
 	for (int i = 0; i < num_trials; i++)
 	{
-		float new_time = time_to_get_from_cache(buffer_size);
+		float new_time = time_to_get_from_DRAM(buffer_size);
 		min = new_time < min ? new_time : min;
 	}
 
@@ -138,40 +116,18 @@ float get_min_from_n_trials(int num_trials, int buffer_size)
 int main()
 {
 
-	std::cout<<"# Bytes\ttime"<<std::endl;
+	int smallest_trial = pow(2,10);
+	int biggest_trial = pow(2,27);
+	int num_trials = 16;
 
-	int smallest_trial = pow(2,11);
-	int biggest_trial = pow(2,26);
-	for (int i = smallest_trial; i <= biggest_trial; i *= 2)
-	{
-		float time = time_to_get_from_cache(i);
-		std::cout<<i<<"\t"<<time<<std::endl;
-
-	}
-
-	std::cout<<"here is with the DRAM"<<std::endl;
 	std::cout<<"# Bytes\ttime"<<std::endl;
 
 	for (int i = smallest_trial; i <= biggest_trial; i *= 2)
 	{
-		float time = time_to_get_from_DRAM(i);
+		float time = get_min_from_n_trials(num_trials,i);
 		std::cout<<i<<"\t"<<time<<std::endl;
 
 	}
-
-	std::mt19937 mt_rand(std::time(0));
-
-	//time it takes for ++ to happen:
-	auto startTime = std::chrono::high_resolution_clock::now();
-		
-	mt_rand();
-		
-	auto endTime = std::chrono::high_resolution_clock::now();
-	float t = std::chrono::duration_cast<std::chrono::nanoseconds>( endTime - startTime ).count();
- 
-	std::cout<<"this is how long it takes to gen a rando num to happen:"<<t<<std::endl;
-
-
 
 	return 0;
 }
