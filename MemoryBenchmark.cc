@@ -81,7 +81,7 @@ float time_to_get_from_DRAM(uint64_t buffer_size)
 
 
 	//determine how many iters to do
-	int iters = buffer_size < 100000 ? buffer_size * 1024 : buffer_size;
+	int iters = buffer_size < 100000 ? buffer_size * 2048 : buffer_size;
 
 
 
@@ -127,7 +127,7 @@ float time_to_get_from_DRAM(uint64_t buffer_size)
 	
 //	if (index > BIGGEST_INDEX_PLUS_ONE) std::cout<<"something is going wrong" <<std::endl;
 
-	double t = std::chrono::duration_cast<std::chrono::nanoseconds>( finTime - startTime ).count();
+	float t = std::chrono::duration_cast<std::chrono::nanoseconds>( finTime - startTime ).count();
 	
 
 //	std::cout<<"t is "<<t<<std::endl;
@@ -173,7 +173,7 @@ int main()
 {
 
 	uint64_t smallest_trial = pow(2,9);
-	uint64_t biggest_trial = pow(2,26);
+	uint64_t biggest_trial = pow(2,40);
 	int num_trials = 16;
 
 	std::cout<<"# Bytes\ttime"<<std::endl;
