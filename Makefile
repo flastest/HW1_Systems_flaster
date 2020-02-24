@@ -1,5 +1,5 @@
 CXX = g++
-CCFLAGS = -Wall -Wextra -pedantic -Werror --std=c++17 -O3
+CCFLAGS = -Wall -Wextra -pedantic --std=c++17 -O3 
 
 # this is a "Suffix Rule" - how to create a .o from a .cc file
 .cpp.o:
