@@ -52,10 +52,10 @@ std::vector<data_t> random_array(int size)
 float time_to_get_from_DRAM(uint64_t buffer_size)
 {
 	//I want an immediate in my if statement in the for loop
-	// that evaluates quickly and always fails, so I think that 
-	// this will sort of act as an immediate. Looking up a variable
-	// would be too slow
+	// that evaluates quickly and always fails.
 	const auto BIGGEST_INDEX_PLUS_ONE  = buffer_size + 1;
+
+  //buffer size is number of ints, but I want number of bytes
 	buffer_size /= sizeof(data_t);
 
 	std::vector<data_t> bytes = random_array(buffer_size);
