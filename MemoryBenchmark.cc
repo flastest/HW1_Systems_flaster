@@ -37,28 +37,9 @@ std::vector<data_t> random_array(int size)
 	return byte_vector;
 }
 
-/* takes a number of iterations and a buffer_size and makes an 
- * array of iteration size that contains random indices from 0 to
- * buffer_size-1. The returned array should have no cycles.
- *
- */
-std::vector<int> index_vector(int iters, int buffer_size)
-{
-	std::vector<int> indices;
-	//to make sure there are no cycles, this array will contain
-	// some fibonacci numbers
-	int prior = 1;
-	for (int i = 0; i < iters; i++)
-	{
-		indices.push_back((i+prior)%(buffer_size-1));
-		prior = i+prior;
-	}
-	//random_shuffle(indices.begin(),indices.end());
-	
 
 
-	return indices;
-}
+
 
 /*
  * This takes a size of a buffer and takes buffer_size number random
@@ -94,44 +75,24 @@ float time_to_get_from_DRAM(uint64_t buffer_size)
 	}
 	random_shuffle(indexes.begin(),indexes.end());
 
-	//different algorithm to create a random array of indices
-	//indexes = index_vector(iters, buffer_size);
 
-//	uint64_t index = 0;
 
 	//time "iters" amount of reads from bytes vector 
 	auto startTime = std::chrono::high_resolution_clock::now();
 	for (int i = 0; i < iters; i++)
 	{
 
-//		index = bytes[index];
 		auto index = indexes[i];
 
 
-		//is it prefectching because it knows ahead what index it'll go to
-		// or is it prefetching because it happens to read from the same place every time?
 		assert((bytes[index] != BIGGEST_INDEX_PLUS_ONE));
-		// {
-		// 	std::cout<<"something wrong is happening"<<std::endl;
-		// 	std::cout<<"buffer_size is " <<buffer_size<<std::endl;
-		// }
-
-//		if (bytes[indexes[i]] == 256) std::cout<<"something wrong is happening"<<std::endl;
-
-		
-		//bytes[indexes[i]]++;
-
 
 	}
 	auto finTime = std::chrono::high_resolution_clock::now();
 	
-//	if (index > BIGGEST_INDEX_PLUS_ONE) std::cout<<"something is going wrong" <<std::endl;
 
 	float t = std::chrono::duration_cast<std::chrono::nanoseconds>( finTime - startTime ).count();
 	
-
-//	std::cout<<"t is "<<t<<std::endl;
-
 	return t/iters;
 	
 }
